@@ -2,9 +2,15 @@
 
     require_once("globals.php");
     require_once("db.php");
-    
-    $flassMessage= [];
+    require_once("models/message.php");
 
+    $message = new Message($BASE_URL);
+
+    $flassMessage= $message->getMessage();
+
+    if(!empty($flassMessage["msg"])) {
+        $message->clearMessage();
+    }
 ?>
 
 <!DOCTYPE html>
@@ -48,8 +54,7 @@
         </nav>
     </header>
 <?php if(!empty($flassMessage["msg"])): ?>
-
-<?php endif; ?>
     <div class="msg-container">
         <p class="msg <?= $flassMessage["type"] ?>"><?= $flassMessage["msg"] ?></p>
     </div>
+<?php endif; ?>
