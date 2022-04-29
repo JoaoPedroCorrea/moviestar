@@ -1,15 +1,18 @@
 <?php
 
 require_once("models/user.php");
+require_once("models/message.php");
 
 class UserDAO implements UserDAOInterface {
 
     private $conn;
     private $url;
+    private $message;
 
     public function __construct(PDO $conn, $url){
         $this->conn = $conn;
         $this->url = $url;
+        $this->message = new Message($url);
     }
 
     public function buildUser($data){
@@ -31,6 +34,16 @@ class UserDAO implements UserDAOInterface {
     
     public function create(User $user, $authUser = false){
 
+        $stmt = $this->conn->prepare("INSERT INTO users(name, lastname, email, password, token) VALUES (:name, :lastname, :email, :password, :token)");
+        
+        $stmt->bindParam(":name", $user->name);
+        $stmt->bindParam(":lastname", $user->lastname);
+        $stmt->bindParam(":email", $user->email);
+        $stmt->bindParam(":password", $user->password);
+        $stmt->bindParam(":token", $user->token);
+
+        $stmt->execute();
+
     }
     
     public function update(User $user){
@@ -43,6 +56,14 @@ class UserDAO implements UserDAOInterface {
     
     public function setTokenToSession($token, $redirect = true){
 
+        $_SESSION["token"] = $token;
+
+        if($redirect){
+
+            $this->message->setMessage("Seja bem-vindo!", "success", "editprofile.php");
+
+        }
+
     }
     
     public function authenticateUser($email, $password){
@@ -54,6 +75,31 @@ class UserDAO implements UserDAOInterface {
     }
     
     public function findByEmail($email){
+
+        if($email != ""){
+
+            $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = :email");
+            $stmt->bindParam(":email", $email);
+            $stmt->execute();
+
+            if($stmt->rowCount() > 0){
+
+                $data = $stmt->fetch();
+                $user = $this->buildUser($data);
+
+                return $user;
+
+            } else {
+
+                return false;
+            
+            }
+
+        } else {
+
+            return false;
+        
+        }
 
     }
     
