@@ -41,7 +41,7 @@ if($type === "register") {
  
                 $userDao->create($user, $auth);
                 
-                $message->setMessage("Usuário criado com sucesso.", "success", "editprofile.php");
+                $message->setMessage("Seja bem-vindo!", "success", "editprofile.php");
 
 
             } else {
@@ -64,4 +64,17 @@ if($type === "register") {
 
 } else if ($type === "login"){
 
+    $email = filter_input(INPUT_POST, "email");
+    $password = filter_input(INPUT_POST, "password");
+
+    // Try to redirect user
+    if($userDao->authenticateUser($email, $password)) {
+
+        $message->setMessage("Seja bem-vindo!", "success", "index.php");
+
+    } else { 
+        $message->setMessage("Usuário e/ou senha incorretos. ", "error", "back");
+    }
+} else {
+    $message->setMessage("Credenciais invalidas.", "error", "index.php");
 }

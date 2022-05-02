@@ -1,5 +1,4 @@
 <?php
-
 require_once("models/user.php");
 require_once("models/message.php");
 
@@ -44,20 +43,62 @@ class UserDAO implements UserDAOInterface {
 
         $stmt->execute();
 
+        // Authenticate user if Auth = true
+        if($authUser){
+            $this->setTokenToSession($user->token);
+        }
+
     }
     
-    public function update(User $user){
+    public function update(User $user, $redirect = true){
+
+        $stmt = $this->conn->prepare(" UPDATE users SET name = :name, lastname = :lastname, email = :email, image = :image, bio = :bio, token = :token WHERE id = :id");
+
+        $stmt->bindParam(":name", $user->name);
+        $stmt->bindParam(":lastname", $user->lastname);
+        $stmt->bindParam(":email", $user->email);
+        $stmt->bindParam(":image", $user->image);
+        $stmt->bindParam(":bio", $user->bio);
+        $stmt->bindParam(":token", $user->token);
+        $stmt->bindParam(":id", $user->id);
+
+        $stmt->execute();
+
+        if($redirect){
+
+            $this->message->setMessage("Dados atualizados com sucesso!", "success", "editprofile.php");
+
+        }
 
     }
     
     public function verifyToken($protected = false){
 
+        if(!empty($_SESSION["token"])) {
+            
+            // Capture session token
+            $token = $_SESSION["token"];
+            
+            // Verify user
+            $user = $this->findByToken($token);
+
+            if($user){
+                return $user;
+            } else if($protected){
+
+                // Redirect unauthenticated user 
+                $this->message->setMessage("Faça login para prosseguir!", "error", "index.php");
+
+            }
+
+        }
     }
     
     public function setTokenToSession($token, $redirect = true){
-
+        // Save session token
         $_SESSION["token"] = $token;
 
+        // Redirect to user profile 
         if($redirect){
 
             $this->message->setMessage("Seja bem-vindo!", "success", "editprofile.php");
@@ -67,6 +108,35 @@ class UserDAO implements UserDAOInterface {
     }
     
     public function authenticateUser($email, $password){
+
+        $user = $this->findByEmail($email);
+
+        if($user){
+
+            // Check passwords
+            if(password_verify($password, $user->password)){
+
+                // Generate Token to insert in session
+                $token = $user->generateToken();
+
+                $this->setTokenToSession($token, false);
+
+                // Update user token
+                $user->token = $token;
+
+                $this->update($user, false);
+
+                return true;
+
+            } else {
+                return false;
+            }
+
+        } else {
+
+            return false;
+        
+        }
 
     }
     
@@ -105,10 +175,48 @@ class UserDAO implements UserDAOInterface {
     
     public function findByToken($token){
 
+        if($token != ""){
+
+            $stmt = $this->conn->prepare("SELECT * FROM users WHERE token = :token");
+            $stmt->bindParam(":token", $token);
+            $stmt->execute();
+
+            if($stmt->rowCount() > 0){
+
+                $data = $stmt->fetch();
+                $user = $this->buildUser($data);
+
+                return $user;
+
+            } else {
+
+                return false;
+            
+            }
+
+        } else {
+
+            return false;
+        
+        }
+
     }
     
     public function findById($id){
 
     }
+
+
+    public function destroyToken() {
+
+        // Remove session token
+        $_SESSION["token"] = "";
+
+        // Redirect to index
+        $this->message->setMessage("Você fez o logout.", "success", "index.php");
+
+    }
+
+
 
 }
