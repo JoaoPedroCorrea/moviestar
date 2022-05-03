@@ -38,7 +38,6 @@ if($type === "update") {
         $image = $_FILES["image"];
         $imageTypes = ["image/jpeg", "image/jpg", "image/png"];
         $jpgArray = ["image/jpeg", "image/jpg"];
-        // $imagePath = "./img/users/";
 
         // Check file type
         if(in_array($image["type"], $imageTypes)) {
@@ -94,5 +93,5 @@ if($type === "update") {
     }
 
 } else {
-    $message->setMessage("Credenciais invalidas.", "error", "index.php");
+    $message->setMessage("Informações invalidas.", "error", "index.php");
 }
