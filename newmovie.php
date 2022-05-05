@@ -6,6 +6,7 @@
     $user = new User();
     $userDao = new UserDAO($conn, $BASE_URL);
     $userData = $userDao->verifyToken(true);
+
 ?>
     <div id="main-container" class="container-fluid">
         <div class="offset-md-4 col-md-4 new-movie-container">
@@ -33,7 +34,7 @@
                         <option value="Terror">Terror</option>
                         <option value="Drama">Drama</option>
                         <option value="Romance">Romance</option>
-                        <option value="Suspense">Suspense</option>
+                        <option value="Comédia">Comédia</option>
                     </select>
                 </div>
                 <div class="form-group">
